@@ -5,6 +5,26 @@ import * as cheerio from "cheerio";
 
 const app = express();
 
+// Helper to bypass basic Cloudflare/WAF blocks
+const fetchWithHeaders = async (url: string) => {
+  return fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Sec-Ch-Ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+      'Sec-Ch-Ua-Mobile': '?0',
+      'Sec-Ch-Ua-Platform': '"Windows"',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'none',
+      'Sec-Fetch-User': '?1',
+      'Upgrade-Insecure-Requests': '1',
+      'Cache-Control': 'max-age=0'
+    }
+  });
+};
+
 // Enable CORS for all routes
 app.use(cors({
   origin: '*',
@@ -34,11 +54,7 @@ app.get("/api/search", async (req, res) => {
 
   try {
     const url = `https://vegamovies.vodka/?s=${encodeURIComponent(query)}`;
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
-    });
+    const response = await fetchWithHeaders(url);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch from vegamovies. Status: ${response.status}`);
@@ -93,11 +109,7 @@ app.get("/api/info", async (req, res) => {
 
   try {
     const url = `https://vegamovies.vodka/${id}/`;
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
-    });
+    const response = await fetchWithHeaders(url);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch from vegamovies. Status: ${response.status}`);
@@ -176,11 +188,7 @@ app.get("/api/movies", async (req, res) => {
       url += `page/${page}/`;
     }
 
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
-    });
+    const response = await fetchWithHeaders(url);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch from vegamovies. Status: ${response.status}`);
@@ -245,11 +253,7 @@ app.get("/api/series", async (req, res) => {
       url += `page/${page}/`;
     }
 
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
-    });
+    const response = await fetchWithHeaders(url);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch from vegamovies. Status: ${response.status}`);
@@ -314,11 +318,7 @@ app.get("/api/latest-releases", async (req, res) => {
       url += `page/${page}/`;
     }
 
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
-    });
+    const response = await fetchWithHeaders(url);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch from vegamovies. Status: ${response.status}`);
@@ -385,11 +385,7 @@ app.get("/api/download", async (req, res) => {
 
   try {
     const url = `https://vegamovies.vodka/${id}/`;
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
-    });
+    const response = await fetchWithHeaders(url);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch from vegamovies. Status: ${response.status}`);
@@ -444,9 +440,7 @@ app.get("/api/download", async (req, res) => {
     }
 
     // Now extract from targetNexdriveUrl
-    const nexRes = await fetch(targetNexdriveUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
-    });
+    const nexRes = await fetchWithHeaders(targetNexdriveUrl);
     const nexHtml = await nexRes.text();
     const _$ = cheerio.load(nexHtml);
     
@@ -470,13 +464,13 @@ app.get("/api/download", async (req, res) => {
     // Process vcloud links concurrently
     await Promise.all(vcloudLinks.map(async (link) => {
         try {
-            const vcloudRes = await fetch(link.url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' } });
+            const vcloudRes = await fetchWithHeaders(link.url);
             if (vcloudRes.ok) {
                 const vcloudHtml = await vcloudRes.text();
                 const urlMatch = vcloudHtml.match(/var\s+url\s*=\s*['"]([^'"]+)['"]/i);
                 if (urlMatch && urlMatch[1]) {
                     const redirectUrl = urlMatch[1];
-                    const finalRes = await fetch(redirectUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' } });
+                    const finalRes = await fetchWithHeaders(redirectUrl);
                     if (finalRes.ok) {
                         const finalHtml = await finalRes.text();
                         const __$ = cheerio.load(finalHtml);
