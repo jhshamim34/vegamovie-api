@@ -1,0 +1,5 @@
+{
+  "name": "Movie Scraper API",
+  "description": "A REST API and frontend to scrape movie search results and return them in JSON format.",
+  "requestFramePermissions": []
+}
