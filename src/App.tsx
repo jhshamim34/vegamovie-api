@@ -20,22 +20,23 @@ export default function App() {
     setResult(null);
 
     try {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
       let url = '';
       if (endpoint === 'search') {
-        url = `/api/search?q=${encodeURIComponent(inputValue)}`;
+        url = `${baseUrl}/api/search?q=${encodeURIComponent(inputValue)}`;
       } else if (endpoint === 'info') {
-        url = `/api/info?id=${encodeURIComponent(inputValue)}`;
+        url = `${baseUrl}/api/info?id=${encodeURIComponent(inputValue)}`;
       } else if (endpoint === 'download') {
-        url = `/api/download?id=${encodeURIComponent(inputValue)}&quality=${encodeURIComponent(quality)}`;
+        url = `${baseUrl}/api/download?id=${encodeURIComponent(inputValue)}&quality=${encodeURIComponent(quality)}`;
         if (season.trim()) {
           url += `&se=${encodeURIComponent(season)}`;
         }
       } else if (endpoint === 'movies') {
-        url = `/api/movies?page=${encodeURIComponent(page)}`;
+        url = `${baseUrl}/api/movies?page=${encodeURIComponent(page)}`;
       } else if (endpoint === 'series') {
-        url = `/api/series?page=${encodeURIComponent(page)}`;
+        url = `${baseUrl}/api/series?page=${encodeURIComponent(page)}`;
       } else if (endpoint === 'latest') {
-        url = `/api/latest-releases?page=${encodeURIComponent(page)}`;
+        url = `${baseUrl}/api/latest-releases?page=${encodeURIComponent(page)}`;
       }
         
       const res = await fetch(url);
