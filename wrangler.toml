@@ -2,5 +2,5 @@ name = "vegamovies-api"
 main = "worker.ts"
 compatibility_date = "2024-04-08"
 
-# Optional: if you want to use nodejs_compat for any node built-ins
-# compatibility_flags = [ "nodejs_compat" ]
+# Required for Cheerio and other Node.js libraries to work in Cloudflare Workers
+compatibility_flags = [ "nodejs_compat" ]
