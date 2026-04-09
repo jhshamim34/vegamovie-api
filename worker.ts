@@ -46,28 +46,40 @@ export default {
         const query = url.searchParams.get('q');
         if (!query) return jsonResponse({ error: "Missing query parameter 'q'" }, 400);
 
-        const targetUrl = `https://vegamovies.vodka/?s=${encodeURIComponent(query)}`;
+        const targetUrl = `https://vegamovies.vodka/search.php?q=${encodeURIComponent(query)}`;
         const response = await fetchWithHeaders(targetUrl);
         if (!response.ok) throw new Error(`Failed to fetch from vegamovies. Status: ${response.status}`);
 
-        const html = await response.text();
-        const $ = cheerio.load(html);
+        const jsonData = await response.json();
         const results: any[] = [];
         
-        $('.movies-grid a').each((i, el) => {
-            const href = $(el).attr('href');
-            if (!href || !href.includes('vegamovies.vodka')) return;
-            
-            const id = href.replace('https://vegamovies.vodka/', '').replace(/\//g, '');
-            const title = $(el).find('.poster-title').text().trim() || $(el).find('img').attr('alt')?.trim() || 'Unknown Title';
-            const image = $(el).find('img').attr('data-src') || $(el).find('img').attr('src');
-            const quality = $(el).find('.poster-quality').text().trim();
-            const imdb = $(el).find('.imdb-score').text().trim();
-            
-            if (id && title) {
-                results.push({ id, title, image, quality, imdb });
-            }
-        });
+        if (jsonData && jsonData.hits) {
+            jsonData.hits.forEach((hit: any) => {
+                const doc = hit.document;
+                if (!doc) return;
+                
+                const href = doc.permalink || '';
+                const id = href.replace('https://vegamovies.vodka/', '').replace(/\//g, '');
+                const title = doc.post_title || 'Unknown Title';
+                const image = doc.post_thumbnail || '';
+                
+                let quality = 'HD';
+                const titleLower = title.toLowerCase();
+                if (titleLower.includes('2160p') || titleLower.includes('4k')) quality = '4K';
+                else if (titleLower.includes('1080p')) quality = '1080p';
+                else if (titleLower.includes('720p')) quality = '720p';
+                else if (titleLower.includes('480p')) quality = '480p';
+                else if (doc.category && Array.isArray(doc.category)) {
+                    if (doc.category.includes('1080p')) quality = '1080p';
+                    else if (doc.category.includes('720p')) quality = '720p';
+                    else if (doc.category.includes('480p')) quality = '480p';
+                }
+                
+                const imdb = doc.imdb_id || '';
+                
+                if (id && title) results.push({ id, title, image, quality, imdb });
+            });
+        }
 
         return jsonResponse({ success: true, query, source_url: targetUrl, data: results });
       }
