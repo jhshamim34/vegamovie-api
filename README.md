@@ -1,20 +1,22 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Vegamovies API
 
-# Run and deploy your AI Studio app
+This project provides a scraper API for Vegamovies, built with Express (for local/VPS deployment) and Cloudflare Workers (for edge deployment).
 
-This contains everything you need to run your app locally.
+## Deployment
 
-View your app in AI Studio: https://ai.studio/apps/755f83af-cc64-4fb8-98dc-cce1c6db77f4
+### Cloudflare Workers (Recommended)
+This API is optimized for Cloudflare Workers to bypass 403 Forbidden errors caused by Datacenter IPs. 
 
-## Run Locally
+1. Push this repository to GitHub.
+2. Go to the Cloudflare Dashboard -> Workers & Pages.
+3. Create a new Worker and connect it to your GitHub repository.
+4. Cloudflare will automatically deploy the `worker.ts` file using the `wrangler.toml` configuration.
 
-**Prerequisites:**  Node.js
+### Vercel (Frontend Only)
+You can deploy the frontend to Vercel. Make sure to set the `VITE_API_BASE_URL` environment variable in Vercel to point to your deployed Cloudflare Worker URL.
 
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Local Development
+```bash
+npm install
+npm run dev
+```
