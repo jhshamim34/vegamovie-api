@@ -174,7 +174,7 @@ export default {
         let targetNexdriveUrl = '';
         let matchedSection = '';
 
-        $('.page-body h3').each((i, el) => {
+        $('.page-body h3, .page-body h4, .page-body h5').each((i, el) => {
             const sectionTitle = $(el).text().trim();
             const sectionTitleLower = sectionTitle.toLowerCase();
             const q = quality.toLowerCase();
